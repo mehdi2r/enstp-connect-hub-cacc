@@ -1,0 +1,2 @@
+ALTER TABLE public.wilaya_posts ADD COLUMN IF NOT EXISTS category text NOT NULL DEFAULT 'discussion' CHECK (category IN ('discussion','advice','exchange'));
+ALTER TABLE public.shared_files ADD COLUMN IF NOT EXISTS subject text NOT NULL DEFAULT 'other';

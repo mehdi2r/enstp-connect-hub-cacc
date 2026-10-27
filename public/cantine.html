@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menu de la cantine — ENSTP Go</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--background:oklch(.989 .003 155);--foreground:oklch(.26 .025 166);--card:oklch(1 0 0);--primary:oklch(.43 .079 169);--primary-foreground:oklch(1 0 0);--secondary:oklch(.95 .014 161);--muted:oklch(.965 .004 160);--muted-foreground:oklch(.52 .016 161);--border:oklch(.91 .009 159);--mint:oklch(.93 .038 163);--mint-ink:oklch(.43 .08 167);--peach:oklch(.95 .032 58);--peach-ink:oklch(.58 .11 50);--shadow:0 15px 50px oklch(.2 .02 160 / .12)}
+html.dark{color-scheme:dark;--background:oklch(.17 .018 170);--foreground:oklch(.95 .01 160);--card:oklch(.22 .022 170);--primary:oklch(.74 .11 165);--primary-foreground:oklch(.17 .03 170);--secondary:oklch(.28 .022 170);--muted:oklch(.26 .02 170);--muted-foreground:oklch(.74 .02 165);--border:oklch(1 0 0 / 12%);--mint:oklch(.32 .05 165);--mint-ink:oklch(.85 .08 165);--peach:oklch(.32 .05 58);--peach-ink:oklch(.87 .08 58);--shadow:0 15px 50px oklch(0 0 0 / .4)}
+*{box-sizing:border-box}
+*,*::before{transition:background-color .45s cubic-bezier(.4,0,.2,1),color .45s cubic-bezier(.4,0,.2,1),border-color .45s cubic-bezier(.4,0,.2,1)}
+body{margin:0;background:var(--background);color:var(--foreground);font-family:'Manrope',system-ui,sans-serif;font-size:14px}
+body.ar{font-family:'Cairo','Manrope',sans-serif}
+h1,h2,h3{margin:0;font-weight:800;letter-spacing:-.01em}
+button{font:inherit;cursor:pointer;color:inherit}
+button:focus-visible,a:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.wrap{max-width:768px;margin:0 auto;padding:28px 20px 48px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.back{display:inline-flex;align-items:center;gap:6px;color:var(--primary);font-weight:700;text-decoration:none}.back svg{width:16px;height:16px}
+body.ar .back svg{transform:scaleX(-1)}
+.lang{display:inline-flex;border:1px solid var(--border);border-radius:999px;padding:3px;background:var(--card)}
+.lang button{border:0;background:none;padding:5px 12px;border-radius:999px;font-weight:700;font-size:12px;color:var(--muted-foreground)}
+.lang button.on{background:var(--primary);color:var(--primary-foreground)}
+h1{font-size:30px;margin-top:18px}
+.sub{color:var(--muted-foreground);margin:6px 0 0}
+.status{margin-top:14px;display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px}
+.dot{position:relative;width:10px;height:10px;border-radius:50%;background:color-mix(in oklab,var(--muted-foreground) 50%,transparent)}
+.dot.on{background:var(--primary)}
+.dot.on::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--primary);animation:ping 1.6s cubic-bezier(0,0,.2,1) infinite}
+@keyframes ping{75%,100%{transform:scale(2.4);opacity:0}}
+@media (prefers-reduced-motion:reduce){.dot.on::after{animation:none}}
+.info{display:grid;gap:12px;margin-top:18px;grid-template-columns:1fr 1fr}
+.tile{display:flex;align-items:center;gap:12px;background:var(--mint);border-radius:16px;padding:12px}
+.tile .ic{width:36px;height:36px;border-radius:10px;background:var(--card);color:var(--primary);display:grid;place-items:center;flex-shrink:0}
+.ic svg{width:18px;height:18px}
+.tile small{display:block;font-size:12px;color:var(--muted-foreground)}.tile b{font-size:13px}
+.tabs{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:20px}
+.tab{position:relative;border:1px solid var(--border);background:var(--card);border-radius:14px;padding:8px 2px;font-weight:700;font-size:12px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tab small{font-size:15px;font-weight:800}
+.tab.sel{background:var(--primary);color:var(--primary-foreground);border-color:var(--primary)}
+.tab i{position:absolute;top:5px;inset-inline-end:6px;width:6px;height:6px;border-radius:50%;background:var(--peach-ink)}
+.stage{position:relative;margin-top:14px}
+.viewport{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;direction:ltr}
+.viewport::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100%;scroll-snap-align:start;padding:2px}
+body.ar .slide{direction:rtl}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:20px}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:14px}
+.head h2{font-size:22px}.date{margin:2px 0 0;color:var(--muted-foreground)}
+.today-badge{background:var(--peach);color:var(--peach-ink);font-weight:800;font-size:12px;border-radius:999px;padding:4px 10px}
+.meals{display:grid;gap:10px}
+.meal{display:flex;gap:12px;border:1px solid var(--border);border-radius:16px;padding:14px}
+.meal.now{border-color:var(--primary);background:color-mix(in oklab,var(--primary) 8%,var(--card))}
+.meal.done{opacity:.6}
+.meal .icon{width:40px;height:40px;border-radius:12px;background:var(--mint);color:var(--mint-ink);display:grid;place-items:center;flex-shrink:0}
+.meal .icon svg{width:20px;height:20px}
+.meal .body{flex:1;min-width:0}
+.row{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
+.title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.title h3{font-size:16px}
+.time{color:var(--muted-foreground);font-weight:700;font-size:13px}
+.tag{font-size:11px;font-weight:800;border-radius:999px;padding:2px 8px}
+.tag.now{background:var(--primary);color:var(--primary-foreground)}
+.tag.next{background:var(--peach);color:var(--peach-ink)}
+.tag.done{background:var(--muted);color:var(--muted-foreground)}
+.info2{color:var(--muted-foreground);font-size:13px;margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chips span{background:var(--secondary);border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-size:12.5px;font-weight:600}
+.nav{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:var(--card);box-shadow:var(--shadow);display:grid;place-items:center}
+.nav.l{left:-14px}.nav.r{right:-14px}.nav:disabled{opacity:0;pointer-events:none}
+@media (max-width:640px){.nav{display:none}.info{grid-template-columns:1fr}h1{font-size:24px}.tab{font-size:10px}.tab small{font-size:13px}}
+.reset{display:none;margin:14px auto 0;border:1px solid var(--border);background:var(--card);border-radius:999px;padding:8px 16px;font-weight:700;color:var(--primary)}
+.reset.show{display:block}
+body.embed .back{visibility:hidden}body.embed .top{padding-inline-end:44px}body.embed .wrap{padding-top:16px}
+</style>
+<script>try{var q=new URLSearchParams(location.search);if(q.get("dark")==="1"||(parent!==window&&parent.document.documentElement.classList.contains("dark")))document.documentElement.classList.add("dark")}catch(e){}</script>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a class="back" href="guide.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> <span id="t-back">Accueil</span></a>
+  <div class="lang" role="group" aria-label="Langue / Language / اللغة"><button data-l="ar" lang="ar">عربي</button><button data-l="fr">FR</button><button data-l="en">EN</button></div></div>
+  <h1 id="t-title">Menu de la cantine</h1>
+  <p class="sub" id="week">Restaurant universitaire de l'ENSTP</p>
+  <div class="status" aria-live="polite"><span class="dot" id="dot"></span><span id="open">Horaires : 07:00 – 20:00</span></div>
+
+  <div class="info">
+    <div class="tile"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><div><small id="t-hours">Horaires</small><b id="t-hoursv">Tous les jours, 07:00 – 20:00</b></div></div>
+    <div class="tile"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div><div><small id="t-access">Accès</small><b id="t-accessv">Carte d'étudiant</b></div></div>
+  </div>
+
+  <div class="tabs" id="tabs" role="tablist" aria-label="Jours de la semaine"></div>
+  <div class="stage">
+    <div class="viewport" id="viewport"></div>
+    <button class="nav l" id="prev" aria-label="Jour précédent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <button class="nav r" id="next" aria-label="Jour suivant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M9 18l6-6-6-6"/></svg></button>
+  </div>
+  <button class="reset" id="reset"></button>
+</div>
+
+<script>
+  /* ================== LANGUAGES ================== */
+  const L = {
+    fr: { loc: "fr-FR", back: "Accueil", title: "Menu de la cantine", sub: "Restaurant universitaire de l'ENSTP",
+      weekSame: (a,b,m) => `Semaine du ${a} au ${b} ${m}`, weekDiff: (a,b) => `Semaine du ${a} au ${b}`,
+      open: c => `Ouvert maintenant · ferme à ${c}`, closedEarly: o => `Fermé · ouvre à ${o}`, closedLate: o => `Fermé · ouvre demain à ${o}`,
+      hours: "Horaires", hoursV: "Tous les jours, 07:00 – 20:00", access: "Accès", accessV: "Carte d'étudiant",
+      today: "Aujourd'hui", now: "En cours", next: "À suivre", done: "Terminé", reset: "Revenir à aujourd'hui",
+      meals: ["Petit-déjeuner","Déjeuner","Dîner"], info: ["Boisson chaude à volonté","Entrée, plat, dessert et pain","Repas à emporter possible"],
+      days: ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"], short: ["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"],
+      prev: "Jour précédent", nxt: "Jour suivant", pageTitle: "Menu de la cantine — ENSTP Go" },
+    en: { loc: "en-GB", back: "Home", title: "Canteen menu", sub: "ENSTP university restaurant",
+      weekSame: (a,b,m) => `Week of ${a} – ${b} ${m}`, weekDiff: (a,b) => `Week of ${a} – ${b}`,
+      open: c => `Open now · closes at ${c}`, closedEarly: o => `Closed · opens at ${o}`, closedLate: o => `Closed · opens tomorrow at ${o}`,
+      hours: "Opening hours", hoursV: "Every day, 07:00 – 20:00", access: "Access", accessV: "Student card",
+      today: "Today", now: "Now serving", next: "Up next", done: "Finished", reset: "Back to today",
+      meals: ["Breakfast","Lunch","Dinner"], info: ["Hot drink as much as you like","Starter, main, dessert and bread","Takeaway available"],
+      days: ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"], short: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
+      prev: "Previous day", nxt: "Next day", pageTitle: "Canteen menu — ENSTP Go" },
+    ar: { loc: "ar-DZ-u-nu-latn", back: "الرئيسية", title: "قائمة المطعم", sub: "المطعم الجامعي · ENSTP",
+      weekSame: (a,b,m) => `أسبوع من ${a} إلى ${b} ${m}`, weekDiff: (a,b) => `أسبوع من ${a} إلى ${b}`,
+      open: c => `مفتوح الآن · يُغلق عند ${c}`, closedEarly: o => `مغلق · يفتح عند ${o}`, closedLate: o => `مغلق · يفتح غدًا عند ${o}`,
+      hours: "أوقات العمل", hoursV: "كل يوم، 07:00 – 20:00", access: "الدخول", accessV: "بطاقة الطالب",
+      today: "اليوم", now: "جارٍ الآن", next: "التالية", done: "انتهت", reset: "العودة إلى اليوم",
+      meals: ["فطور الصباح","الغداء","العشاء"], info: ["مشروب ساخن بلا حدود","مقبلات، طبق رئيسي، تحلية وخبز","إمكانية أخذ الوجبة"],
+      days: ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"], short: ["أحد","اثنين","ثلاثاء","أربعاء","خميس","جمعة","سبت"],
+      prev: "اليوم السابق", nxt: "اليوم التالي", pageTitle: "قائمة المطعم — ENSTP Go" }
+  };
+
+  // Arabic dish → [Français, English]. Dishes not listed here stay in Arabic.
+  const D = {
+    "حليب + شكولاطة": ["Lait + chocolat", "Milk + chocolate"],
+    "خبز": ["Pain", "Bread"],
+    "خبز بالمربى": ["Pain à la confiture", "Bread with jam"],
+    "خبز بالزبدة": ["Pain au beurre", "Bread with butter"],
+    "خبز بالشكولاطة": ["Pain au chocolat (tartine)", "Bread with chocolate"],
+    "هلاليات": ["Croissants", "Croissants"],
+    "ياغورت": ["Yaourt", "Yogurt"],
+    "عدس": ["Lentilles", "Lentils"],
+    "سلطة متنوعة": ["Salade variée", "Mixed salad"],
+    "بيض": ["Œufs", "Eggs"],
+    "بيضة": ["Œuf", "Egg"],
+    "فاكهة الموسم": ["Fruit de saison", "Seasonal fruit"],
+    "فاكهة": ["Fruit", "Fruit"],
+    "قارورة ماء معدني": ["Bouteille d'eau minérale", "Bottle of mineral water"],
+    "تليتلي": ["Tlitli (pâtes)", "Tlitli (pasta dish)"],
+    "دجاج محمر": ["Poulet rôti", "Roast chicken"],
+    "حلويات جافة": ["Gâteaux secs", "Dry biscuits"],
+    "عصير فواكه": ["Jus de fruits", "Fruit juice"],
+    "عصير الفواكه": ["Jus de fruits", "Fruit juice"],
+    "معكرونة أو سباغيتي": ["Macaronis ou spaghetti", "Macaroni or spaghetti"],
+    "تونة": ["Thon", "Tuna"],
+    "شطيطحة لحم (قطع)": ["Chtitha de viande (morceaux)", "Chtitha meat stew (pieces)"],
+    "قلب اللوز": ["Qalb el louz (gâteau aux amandes)", "Qalb el louz (almond pastry)"],
+    "مادلان": ["Madeleine", "Madeleine"],
+    "فاصوليا": ["Haricots", "Beans"],
+    "جبن": ["Fromage", "Cheese"],
+    "شربة": ["Chorba (soupe)", "Chorba (soup)"],
+    "أرز بالدجاج": ["Riz au poulet", "Chicken rice"],
+    "كريم ديسير": ["Crème dessert", "Crème dessert"],
+    "حساء": ["Soupe", "Soup"],
+    "سردين علب": ["Sardines en boîte", "Canned sardines"],
+    "كباب": ["Kebab", "Kebab"],
+    "لحم قطع": ["Viande (morceaux)", "Meat (pieces)"],
+    "خضار بالمرق أو بطاطا مهروسة": ["Légumes en sauce ou purée", "Vegetables in broth or mashed potatoes"],
+    "شربة بالخضر": ["Chorba aux légumes", "Vegetable chorba (soup)"],
+    "كسكسي": ["Couscous", "Couscous"],
+    "طاجين الزيتون": ["Tajine aux olives", "Olive tagine"],
+    "لحم": ["Viande", "Meat"],
+    "بطاطا كوشة": ["Pommes de terre au four", "Oven-baked potatoes"],
+    "سلطة جزائرية": ["Salade algérienne", "Algerian salad"],
+    "مثوم": ["Mtewem (viande à l'ail)", "Mtewem (garlic meat)"],
+    "بطاطا مقلية": ["Frites", "Fries"],
+    "سلطة ماسيدوان": ["Salade macédoine", "Macédoine salad"],
+    "فولوفان": ["Vol-au-vent", "Vol-au-vent"]
+  };
+
+  /* ================== MENU DATA (Arabic, from the official table) ================== */
+  const W = "قارورة ماء معدني";
+  const MENU = [
+    ["Dimanche","Dim",[
+      ["حليب + شكولاطة","خبز بالمربى","هلاليات","ياغورت"],
+      ["خبز","سلطة متنوعة","عدس","بيض","فاكهة الموسم",W],
+      ["خبز","سلطة متنوعة","تليتلي","دجاج محمر","فاكهة الموسم",W]]],
+    ["Lundi","Lun",[
+      ["حليب + شكولاطة","خبز بالمربى","حلويات جافة","عصير فواكه"],
+      ["خبز","سلطة متنوعة","معكرونة أو سباغيتي","تونة","عصير فواكه",W],
+      ["خبز","سلطة متنوعة","شطيطحة لحم (قطع)","فاكهة الموسم",W,"قلب اللوز"]]],
+    ["Mardi","Mar",[
+      ["حليب + شكولاطة","خبز بالمربى","مادلان","فاكهة"],
+      ["خبز","فاصوليا","جبن","فاكهة الموسم",W],
+      ["خبز","شربة","أرز بالدجاج","كريم ديسير",W]]],
+    ["Mercredi","Mer",[
+      ["حليب + شكولاطة","خبز بالزبدة","خبز بالشكولاطة","بيضة"],
+      ["خبز","حساء","تليتلي","سردين علب","فاكهة الموسم",W],
+      ["خبز","سلطة متنوعة","كباب","لحم قطع","فاكهة الموسم",W]]],
+    ["Jeudi","Jeu",[
+      ["حليب + شكولاطة","خبز بالمربى","مادلان","جبن"],
+      ["سلطة متنوعة","خضار بالمرق أو بطاطا مهروسة","بيض","ياغورت","فاكهة الموسم"],
+      ["خبز","شربة بالخضر","كسكسي","دجاج محمر","عصير الفواكه",W,"قلب اللوز"]]],
+    ["Vendredi","Ven",[
+      ["حليب + شكولاطة","خبز بالمربى","حلويات جافة","عصير الفواكه"],
+      ["خبز","فاصوليا","جبن","فاكهة الموسم",W],
+      ["خبز","سلطة ماسيدوان","طاجين الزيتون","لحم","فاكهة الموسم",W,"فولوفان"]]],
+    ["Samedi","Sam",[
+      ["حليب + شكولاطة","خبز بالمربى","هلاليات","بيضة"],
+      ["خبز","شربة","بطاطا كوشة","بيض","ياغورت",W],
+      ["خبز","سلطة جزائرية","مثوم","بطاطا مقلية","فاكهة الموسم",W]]]
+  ];
+
+  const OPEN = 7*60, CLOSE = 20*60;
+  const hhmm = m => String(Math.floor(m/60)).padStart(2,"0") + ":" + String(m%60).padStart(2,"0");
+  const slots = [
+    { start: 7*60, end: 9*60 },
+    { start: 12*60, end: 14*60 },
+    { start: 18*60+30, end: 20*60 }
+  ];
+  const icons = [
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2M14 2v2M6 2v2M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/></svg>',
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg>',
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>'
+  ];
+
+  let lang = "fr";
+  const QS = new URLSearchParams(location.search);
+  try { const saved = QS.get("lang") || localStorage.getItem("enstp-go-lang") || localStorage.getItem("cantine-lang"); if (saved && L[saved]) lang = saved; } catch (e) {}
+  if (QS.has("embed")) document.body.classList.add("embed");
+  document.querySelector(".back").addEventListener("click", e => { e.preventDefault(); if (parent !== window) parent.postMessage({ type: "cantine-close" }, "*"); else location.href = "guide.html"; });
+  window.addEventListener("message", e => { if (e.source === parent && e.data && e.data.type === "cantine-lang" && L[e.data.lang]) { lang = e.data.lang; build(); go(sel, false); } });
+  const T = () => L[lang];
+  const dishText = x => lang === "ar" || !D[x] ? x : D[x][lang === "fr" ? 0 : 1];
+  const dishAttr = x => lang === "ar" || !D[x] ? 'dir="rtl" lang="ar"' : `lang="${lang}"`;
+
+  const viewport = document.getElementById("viewport");
+  const tabsEl = document.getElementById("tabs");
+  const $ = id => document.getElementById(id);
+  let now = new Date(), today = now.getDay(), sel = today;
+  const dateOf = i => { const d = new Date(now); d.setDate(now.getDate() - today + i); return d; };
+  const minutes = () => now.getHours()*60 + now.getMinutes();
+
+  function build() {
+    const t = T();
+    const fmtDay = new Intl.DateTimeFormat(t.loc, { day: "numeric", month: "long" });
+    const fmtMonth = new Intl.DateTimeFormat(t.loc, { month: "long" });
+    const mins = minutes();
+
+    // static texts
+    document.documentElement.lang = lang;
+    document.body.classList.toggle("ar", lang === "ar");
+    document.title = t.pageTitle;
+    $("t-back").textContent = t.back; $("t-title").textContent = t.title;
+    $("t-hours").textContent = t.hours; $("t-hoursv").textContent = t.hoursV;
+    $("t-access").textContent = t.access; $("t-accessv").textContent = t.accessV;
+    $("reset").textContent = t.reset;
+    $("prev").setAttribute("aria-label", t.prev); $("next").setAttribute("aria-label", t.nxt);
+    document.querySelectorAll(".lang button").forEach(b => b.classList.toggle("on", b.dataset.l === lang));
+
+    const first = dateOf(0), last = dateOf(6);
+    const week = first.getMonth() === last.getMonth()
+      ? t.weekSame(first.getDate(), last.getDate(), fmtMonth.format(last))
+      : t.weekDiff(fmtDay.format(first), fmtDay.format(last));
+    $("week").textContent = t.sub + " · " + week;
+
+    const isOpen = mins >= OPEN && mins < CLOSE;
+    $("dot").className = "dot" + (isOpen ? " on" : "");
+    $("open").textContent = isOpen ? t.open(hhmm(CLOSE)) : mins < OPEN ? t.closedEarly(hhmm(OPEN)) : t.closedLate(hhmm(OPEN));
+
+    tabsEl.innerHTML = MENU.map((_, i) => `
+      <button class="tab ${i===sel?"sel":""}" role="tab" aria-selected="${i===sel}" aria-label="${t.days[i]}" data-i="${i}">
+        ${t.short[i]}<small>${dateOf(i).getDate()}</small>${i===today?"<i></i>":""}
+      </button>`).join("");
+
+    const upcoming = slots.findIndex(m => mins < m.start);
+    viewport.innerHTML = MENU.map((d, i) => `
+      <div class="slide ${i===sel?"sel":""}">
+        <div class="card">
+          <div class="head">
+            <div><h2>${t.days[i]}</h2><p class="date">${fmtDay.format(dateOf(i))}</p></div>
+            ${i===today ? `<span class="today-badge">${t.today}</span>` : ""}
+          </div>
+          <div class="meals">
+            ${slots.map((m, j) => {
+              let st = "later";
+              if (i === today) st = mins >= m.end ? "done" : mins >= m.start ? "now" : j === upcoming ? "next" : "later";
+              const tag = st==="now" ? `<span class="tag now">${t.now}</span>` : st==="next" ? `<span class="tag next">${t.next}</span>` : st==="done" ? `<span class="tag done">${t.done}</span>` : "";
+              return `<div class="meal ${st}">
+                <div class="icon">${icons[j]}</div>
+                <div class="body">
+                  <div class="row"><div class="title"><h3>${t.meals[j]}</h3>${tag}</div><span class="time" dir="ltr">${hhmm(m.start)} – ${hhmm(m.end)}</span></div>
+                  <div class="info2">${t.info[j]}</div>
+                  <div class="chips">${MENU[i][2][j].map(x => `<span ${dishAttr(x)}>${dishText(x)}</span>`).join("")}</div>
+                </div></div>`;
+            }).join("")}
+          </div>
+        </div>
+      </div>`).join("");
+    updateUI();
+  }
+
+  function go(i, smooth = true) {
+    sel = Math.max(0, Math.min(6, i));
+    viewport.style.scrollBehavior = smooth ? "smooth" : "auto";
+    viewport.scrollTo({ left: sel * viewport.clientWidth });
+    updateUI();
+  }
+  function updateUI() {
+    tabsEl.querySelectorAll(".tab").forEach((t, i) => { t.classList.toggle("sel", i === sel); t.setAttribute("aria-selected", i === sel); });
+    viewport.querySelectorAll(".slide").forEach((s, i) => s.classList.toggle("sel", i === sel));
+    $("prev").disabled = sel === 0;
+    $("next").disabled = sel === 6;
+    $("reset").classList.toggle("show", sel !== today);
+  }
+
+  tabsEl.addEventListener("click", e => { const b = e.target.closest(".tab"); if (b) go(+b.dataset.i); });
+  $("prev").onclick = () => go(sel - 1);
+  $("next").onclick = () => go(sel + 1);
+  $("reset").onclick = () => go(today);
+  document.querySelector(".lang").addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    lang = b.dataset.l;
+    try { localStorage.setItem("cantine-lang", lang); } catch (err) {}
+    build(); go(sel, false);
+  });
+  window.addEventListener("keydown", e => { if (e.key === "ArrowLeft") go(sel - 1); if (e.key === "ArrowRight") go(sel + 1); });
+  let tm;
+  viewport.addEventListener("scroll", () => {
+    clearTimeout(tm);
+    tm = setTimeout(() => { const i = Math.round(viewport.scrollLeft / viewport.clientWidth); if (i !== sel) { sel = i; updateUI(); } }, 80);
+  });
+  window.addEventListener("resize", () => go(sel, false));
+
+  build();
+  go(today, false);
+  setInterval(() => { now = new Date(); const keep = sel; build(); go(keep, false); }, 60000);
+</script>
+</body>
+</html>
