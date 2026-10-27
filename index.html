@@ -262,7 +262,7 @@ try { var pj = localStorage.getItem('enstp-go-profile'); if (pj) { profile = JSO
 function okEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v).trim()); }
 var pendingEmail = null;
 function gsb() { return new Promise(function (ok, no) { var n = 0; (function w() { if (window.ENSTP_SB) ok(window.ENSTP_SB()); else if (n++ > 100) no(new Error('no client')); else setTimeout(w, 100); })(); }); }
-function sendCode(em) { return gsb().then(function (c) { return c.auth.signInWithOtp({ email: em, options: { shouldCreateUser: true, emailRedirectTo: location.href.split('#')[0] } }); }); }
+function sendCode(em) { return gsb().then(function (c) { return c.auth.signInWithOtp({ email: em, options: { shouldCreateUser: true, emailRedirectTo: location.origin + location.pathname } }); }); }
 function yearLabel() { var g = GATE[lang]; if (!profile || !g.yrs[profile.year]) return ''; return g.yrs[profile.year] + ((profile.dept === 0 || profile.dept === 1) ? ' · ' + ['DIB', 'DMS'][profile.dept] : ''); }
 function gate() {
   var g = GATE[lang];
@@ -619,10 +619,12 @@ document.addEventListener('click', function (e) {
   else if (t && t.id === 'code-resend' && pendingEmail) { t.disabled = true; sendCode(pendingEmail).then(function (r) { t.disabled = false; document.getElementById('gate-err').textContent = r.error ? GATE[lang].cse : GATE[lang].sent; }).catch(function () { t.disabled = false; }); }
 });
 var linkHash = (location.hash.indexOf('access_token=') > -1) ? new URLSearchParams(location.hash.replace(/^#/, '')) : null;
-if (linkHash) { try { history.replaceState(null, '', location.pathname + location.search); } catch (x) {} }
+var linkCode = new URLSearchParams(location.search).get('code');
+if (linkHash || linkCode) { try { history.replaceState(null, '', location.pathname); } catch (x) {} }
 setTimeout(function () {
   gsb().then(function (c) {
     if (linkHash && linkHash.get('access_token')) { return c.auth.setSession({ access_token: linkHash.get('access_token'), refresh_token: linkHash.get('refresh_token') }).then(function () { return c.auth.getSession(); }); }
+    if (linkCode) { return c.auth.exchangeCodeForSession(linkCode).then(function () { return c.auth.getSession(); }).catch(function () { return c.auth.getSession(); }); }
     return c.auth.getSession();
   }).then(function (r) {
     var u = r.data && r.data.session && r.data.session.user;
@@ -825,7 +827,7 @@ var ext=f.path.split('.').pop(),safe=f.title.replace(/[\\/:*?"<>|]+/g,'_').slice
 if(d.fdel){var g=S.files.filter(function(x){return x.id===d.fdel})[0];if(!g)return;await c2.storage.from('knowledge').remove([g.path]);var r2=await c2.from('shared_files').delete().eq('id',g.id);if(!r2.error){S.files=S.files.filter(function(x){return x.id!==g.id});render()}}}
 async function onSubmit(ev){var f=ev.target;if(!root.contains(f))return;ev.preventDefault();var l=lang(),c=await sb(),fd=new FormData(f);
 if(f.hasAttribute('data-auth')){var em=String(fd.get('em')).trim().toLowerCase(),pw=String(fd.get('pw'));S.busy=true;
- if(S.auth==='signup'){var yr=+fd.get('yr');var r=await c.auth.signUp({email:em,password:pw,options:{emailRedirectTo:location.href.split('#')[0],data:{first_name:String(fd.get('fn')).trim(),last_name:String(fd.get('ln')).trim(),academic_year:String(yr),specialty:yr>2?(fd.get('sp')||null):null}}});S.busy=false;
+ if(S.auth==='signup'){var yr=+fd.get('yr');var r=await c.auth.signUp({email:em,password:pw,options:{emailRedirectTo:location.origin+location.pathname,data:{first_name:String(fd.get('fn')).trim(),last_name:String(fd.get('ln')).trim(),academic_year:String(yr),specialty:yr>2?(fd.get('sp')||null):null}}});S.busy=false;
   if(r.error){toast(r.error.message);render();return}if(!r.data.session){toast(L3(l,'Compte créé ! Confirmez votre email (vérifiez vos spams), puis connectez-vous.','Account created! Confirm your email (check spam), then sign in.','تم إنشاء الحساب! أكّد بريدك الإلكتروني ثم سجّل الدخول.'));S.auth='login';render();return}}
  else{var r3=await c.auth.signInWithPassword({email:em,password:pw});S.busy=false;if(r3.error){toast(L3(l,'Email ou mot de passe incorrect.','Wrong email or password.','البريد أو كلمة المرور غير صحيحة.'));render();return}}
  await loadUser();return}
